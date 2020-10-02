@@ -10,22 +10,6 @@ React component for fetching new data on vertical scroll
 npm install --save react-infinite-scroll-loader-y
 ```
 
-## Docs
-
-| Property | Required | Type | Default | Description |
-| --- | --- | --- | --- | --- |
-| **dataLength** | **Yes** | `number` | | The length of items. Needed for loading next page. |
-| **hasMore** | **Yes** | `boolean` | |  Boolean to indicate whether there are more items to load. Setting it to `false` disables loadMore() function and won't load next page of items. |
-| **loadMore** | **Yes** | function / `(page: number) => void` | | Function for loading next page of items. |
-| threshold | No | `number` | `250` | Defines minimum space from bottom of your page when new items need to be loaded. |
-| startPage | No | `number` | `0` | The first page of items that will be loaded. |
-| loadFirstSetOnInit | No | `boolean` | `false` | Enforces loading first page even if `hasMore` is set to `false` |
-| loader | No | `React.ReactNode` | | Loading component. Can be a simple text, animated icon or more sophisticated React component. |
-| parentRef | No | `RefObject<any>` | | Pass ref of parent HTML element if you want scroll-loading to happen inside that HTML Element. Useful for applying scroll loader for example inside modals and specific DIVs. |
-| resetDependencies | No | `any or Array<any>` | | Dependencies that will trigger reset of everything |
-| disabled | No | `boolean` | `false` | Disables current component |
-
-
 ## Usage
 - Using this component looks basically like this:
 
@@ -44,12 +28,27 @@ npm install --save react-infinite-scroll-loader-y
 </InfiniteScroll>
 ```
 
-## Basic example
-- Complete basic example:
+## Docs
+
+| Property | Required | Type | Default | Description |
+| --- | --- | --- | --- | --- |
+| **dataLength** | **Yes** | `number` | | The length of items. Needed for loading next page. |
+| **hasMore** | **Yes** | `boolean` | |  Boolean to indicate whether there are more items to load. Setting it to `false` disables loadMore() function and won't load next page of items. |
+| **loadMore** | **Yes** | function / `(page: number) => void` | | Function for loading next page of items. |
+| threshold | No | `number` | `250` | Defines minimum space from bottom of your page when new items need to be loaded. |
+| startPage | No | `number` | `0` | The first page of items that will be loaded. |
+| loadFirstSetOnInit | No | `boolean` | `false` | Enforces loading first page even if `hasMore` is set to `false` |
+| loader | No | `React.ReactNode` | | Loading component. Can be a simple text, animated icon or more sophisticated React component. |
+| parentRef | No | `RefObject<any>` | | Pass ref of parent HTML element if you want scroll-loading to happen inside that HTML Element. Useful for applying scroll loader for example inside modals and specific DIVs. |
+| resetDependencies | No | `any or Array<any>` | | Dependencies that will trigger reset of everything |
+| disabled | No | `boolean` | `false` | Disables current component |
+
+
+## Example
+- Complete example:
 
 ```tsx
 import React, { useState } from 'react'
-
 import InfiniteScroll from 'react-infinite-scroll-loader-y'
 
 // Mock GET request
