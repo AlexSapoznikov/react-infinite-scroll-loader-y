@@ -1,6 +1,6 @@
 {
   "name": "react-infinite-scroll-loader-y",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "React component for fetching new data on vertical scroll",
   "author": "https://github.com/AlexSapoznikov/react-infinite-scroll-loader-y",
   "license": "MIT",
