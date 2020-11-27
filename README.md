@@ -146,6 +146,10 @@ export default App
   )
 ```
 
+## Changelog
+
+- v1.0.6 - Add height check to container to stop loading more data if containers height is 0.
+
 ## License
 
 MIT © [https://github.com/AlexSapoznikov/react-infinite-scroll-loader-y](https://github.com/AlexSapoznikov/react-infinite-scroll-loader-y)
