@@ -1,7 +1,7 @@
 /**
  * Infinite scroll component
  */
-import React, { forwardRef, RefObject, useEffect, useImperativeHandle, useState, Fragment } from 'react';
+import React, { forwardRef, RefObject, useEffect, useImperativeHandle, useState, Fragment, createRef } from 'react';
 import { getBodyScrollHeight, getBodyScrollPosition } from './utils/dom-element-helpers';
 
 type Props = {
@@ -41,6 +41,8 @@ const InfiniteScroll = forwardRef((props: Props, ref: RefObject<any>) => {
     disabled
   } = props;
   const defaultThreshold = 250;
+
+  const dummyContentRef = createRef<HTMLDivElement>();
 
   // Initial state
   const [firstPage, setFirstPage] = useState(startPage && startPage >= 0 ? startPage : 0); // Keep in state, so it won't change from props
@@ -109,9 +111,10 @@ const InfiniteScroll = forwardRef((props: Props, ref: RefObject<any>) => {
       const loadOnInit = loadFirstSetOnInit && page === firstPage;
       const thresholdExceeded = scrollHeight - scrollPosition < (threshold || defaultThreshold);
       const isPageLoaded = pagesLoaded.includes(page);
+      const isParentHidden = dummyContentRef?.current?.parentElement?.offsetHeight === 0;
 
       // If there is more items to load and scroll position exceeds threshold, then load more items
-      if ((loadOnInit || (hasMore && thresholdExceeded)) && !isPageLoaded) {
+      if ((loadOnInit || (hasMore && thresholdExceeded)) && !isPageLoaded && !isParentHidden) {
         setPagesLoaded([...pagesLoaded, page]);
         loadMore(page);
       }
@@ -138,6 +141,11 @@ const InfiniteScroll = forwardRef((props: Props, ref: RefObject<any>) => {
 
   return (
     <Fragment>
+      {/* dummy inside child for getting parent dom element */}
+      <div ref={dummyContentRef}
+           style={{ display: 'none' }}
+      />
+
       {/* items */}
       { children }
 
