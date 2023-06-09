@@ -37,6 +37,7 @@ export type InfiniteScrollRefType = {
   reset: () => void,
 };
 
+// @ts-ignore
 const InfiniteScroll = forwardRef((props: InfiniteScrollProps, ref: RefObject<InfiniteScrollRefType>) => {
   const {
     children,
