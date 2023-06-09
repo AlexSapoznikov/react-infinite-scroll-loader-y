@@ -1,5 +1,12 @@
 # react-infinite-scroll-loader-y
 
+**IMPORTANT!**
+Version 2.0.0 has **breaking changes**.
+- `loadFirstSetOnInit` prop was removed. Look into `manualLoadFirstSet` instead.
+- `startPage` prop was removed. Look into `batchSize` prop instead which is mandatory.
+
+___
+
 React component for fetching new data on vertical scroll
 
 [![NPM](https://img.shields.io/npm/v/react-infinite-scroll-loader-y.svg)](https://www.npmjs.com/package/react-infinite-scroll-loader-y) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
