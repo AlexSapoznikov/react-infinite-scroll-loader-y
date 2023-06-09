@@ -19,7 +19,7 @@ npm install --save react-infinite-scroll-loader-y
 
 ## Demo
 
-[![https://codesandbox.io/s/react-infinite-scroll-loader-y-1g7d0](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/react-infinite-scroll-loader-y-1g7d0)
+[![https://codesandbox.io/s/react-infinite-scroll-loader-y-v2-0-0-d4pl25](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/react-infinite-scroll-loader-y-1g7d0)
 
 ## Usage
 - Using this component looks basically like this:
