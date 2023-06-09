@@ -37,11 +37,10 @@ const App = () => {
 
   return (
     <InfiniteScroll dataLength={items.length}
+                    batchSize={ITEMS_PER_PAGE}
                     loadMore={page => loadMoreItems(page)}
                     hasMore={hasMoreItems}
                     loader={<div>Loading...</div>}
-                    loadFirstSetOnInit={!items.length}
-                    startPage={Math.ceil(items.length / ITEMS_PER_PAGE)}
     >
       {
         items.map(item => (

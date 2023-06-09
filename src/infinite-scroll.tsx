@@ -1,73 +1,74 @@
 /**
  * Infinite scroll component
  */
-import React, { forwardRef, RefObject, useEffect, useImperativeHandle, useState, Fragment, createRef } from 'react';
+import React, {
+  forwardRef,
+  RefObject,
+  useEffect,
+  useImperativeHandle,
+  useState,
+  Fragment,
+  createRef,
+  useRef
+} from 'react';
+import isEqual from 'lodash.isequal';
 import { getBodyScrollHeight, getBodyScrollPosition } from './utils/dom-element-helpers';
 
-type Props = {
-  loadMore: (page: number) => void,
-  dataLength: number,
-  children: React.ReactNode,
-  hasMore: boolean,
-  loader?: React.ReactNode,
-  threshold?: number,
-  parentRef?: RefObject<any>,
-  startPage?: number,
-  loadFirstSetOnInit?: boolean,
-  resetDependencies?: any | Array<any>, // Reset happens when these dependencies change
-  disabled?: boolean,
+export type InfiniteScrollProps = {
+  loadMore: (page: number, params: {
+    limit: number;
+    offset: number;
+  }) => void;
+  dataLength: number;
+  batchSize: number;
+  children: React.ReactNode;
+  hasMore: boolean;
+  loader?: React.ReactNode;
+  threshold?: number;
+  parentRef?: RefObject<any>;
+  startPage?: number;
+  manualLoadFirstSet?: boolean;
+  resetDependencies?: Array<any>; // Reset happens when these dependencies change
+  disabled?: boolean;
+  beforeEachLoad?: (args: InfiniteScrollRefType) => boolean|void; // Return true to stop loading next page.
 }
 
-type ResetToType = {
-  startPage?: number
-};
-
 export type InfiniteScrollRefType = {
-  reset: (resetTo?: ResetToType) => void,
+  reset: () => void,
 };
 
-const InfiniteScroll = forwardRef((props: Props, ref: RefObject<any>) => {
+const InfiniteScroll = forwardRef((props: InfiniteScrollProps, ref: RefObject<InfiniteScrollRefType>) => {
   const {
     children,
     dataLength,
+    batchSize,
     loadMore,
     hasMore,
     loader,
     threshold,
     parentRef,
-    startPage,
-    loadFirstSetOnInit,
+    manualLoadFirstSet,
     resetDependencies,
-    disabled
+    disabled,
+    beforeEachLoad,
   } = props;
   const defaultThreshold = 250;
-
-  const dummyContentRef = createRef<HTMLDivElement>();
-
+  
   // Initial state
-  const [firstPage, setFirstPage] = useState(startPage && startPage >= 0 ? startPage : 0); // Keep in state, so it won't change from props
-  const [page, setPage] = useState(firstPage);
-  const [currentDataLength, setCurrentDataLength] = useState(dataLength);
-  const [pagesLoaded, setPagesLoaded] = useState<number[]>([]);
+  const [previousResetDependencies, setPreviousResetDependencies] = useState(resetDependencies);
 
-  // Dependencies to array of dependencies
-  const externalResetDependencies = (Array.isArray(resetDependencies) ? resetDependencies : [resetDependencies]);
+  const [nextPageToLoad, setNextPageToLoad] = useState(0);
+  const lastPageLoadedRef = useRef(-1);
 
+  const wrapperRef = createRef<HTMLDivElement>();
+
+  const getNextPageToLoad = () => Math.ceil((dataLength || 0) / (batchSize || 1));
+      
   // Reset
-  const reset = (resetTo: ResetToType = {}) => {
-    const { startPage: resetToStartPage }: any = resetTo;
-
-    if (Number.isInteger(resetToStartPage) && resetToStartPage >= 0) {
-      // Reset to passed first page
-      setFirstPage(resetToStartPage);
-      setPage(resetToStartPage);
-    } else {
-      // If start page not passed, reset to firstPage that component was initialized with
-      setPage(firstPage);
-    }
-
-    setCurrentDataLength(dataLength);
-    setPagesLoaded([]);
+  const reset = () => {
+    setPreviousResetDependencies(resetDependencies);
+    lastPageLoadedRef.current = -1;
+    setNextPageToLoad(0);
   };
 
   // Expose data to ref
@@ -75,23 +76,45 @@ const InfiniteScroll = forwardRef((props: Props, ref: RefObject<any>) => {
     reset,
   }));
 
-  // Reset all to initial state when reset dependencies change
-  useEffect(() => {
-    reset();
-  }, externalResetDependencies);
-
   // Trigger page change
   useEffect(() => {
-    if (!Number.isInteger(currentDataLength)) {
-      console.error('InfiniteScroll: dataLength prop is not a number', currentDataLength);
-    }
+    const newNextPageToLoad = getNextPageToLoad();
 
-    if (dataLength > currentDataLength) {
-      setPage(page + 1);
-    }
-
-    setCurrentDataLength(dataLength);
+    setNextPageToLoad(newNextPageToLoad);
   }, [dataLength]);
+
+  const load = () => {
+    if (disabled) {
+      return;
+    }
+
+    // Do not load if it is first set and manualLoadFirstSet mode enabled.
+    if (manualLoadFirstSet && nextPageToLoad === 0) {
+      return;
+    }
+
+    const parentElement = parentRef?.current;
+    const scrollPosition = parentElement
+      ? parentElement.scrollTop + parentElement.offsetHeight
+      : getBodyScrollPosition() + window.innerHeight;
+    const scrollHeight = parentElement
+      ? parentElement.scrollHeight
+      : getBodyScrollHeight();
+    const thresholdExceeded = scrollHeight - scrollPosition < (threshold || defaultThreshold);
+    const isPageLoaded = nextPageToLoad <= lastPageLoadedRef.current;
+    const isParentHidden = wrapperRef?.current?.parentElement?.offsetHeight === 0;
+
+    // If there is more items to load and scroll position exceeds threshold, then load more items
+    if (hasMore && thresholdExceeded && !isPageLoaded && !isParentHidden) {
+      // Set last loaded page so we would not load the same page twice.
+      lastPageLoadedRef.current = nextPageToLoad;
+
+      loadMore(nextPageToLoad, {
+        limit: batchSize,
+        offset: nextPageToLoad * batchSize,
+      });
+    }
+  };
 
   // Load next set of data
   useEffect(() => {
@@ -99,50 +122,40 @@ const InfiniteScroll = forwardRef((props: Props, ref: RefObject<any>) => {
       return;
     }
 
+    // Check if consumer component wants to stop loading.
+    const stopNextLoad = beforeEachLoad?.({ reset }) as boolean;
+
+    if (stopNextLoad) {
+      return;
+    }
+
+    // Reset if dependencies changes.
+    if (!isEqual(resetDependencies, previousResetDependencies)) {
+      reset();
+
+      return;
+    }
+
     const parentElement = parentRef?.current;
 
-    const handle = () => {
-      const scrollPosition = parentElement
-        ? parentElement.scrollTop + parentElement.offsetHeight
-        : getBodyScrollPosition() + window.innerHeight;
-      const scrollHeight = parentElement
-        ? parentElement.scrollHeight
-        : getBodyScrollHeight();
-      const loadOnInit = loadFirstSetOnInit && page === firstPage;
-      const thresholdExceeded = scrollHeight - scrollPosition < (threshold || defaultThreshold);
-      const isPageLoaded = pagesLoaded.includes(page);
-      const isParentHidden = dummyContentRef?.current?.parentElement?.offsetHeight === 0;
-
-      // If there is more items to load and scroll position exceeds threshold, then load more items
-      if ((loadOnInit || (hasMore && thresholdExceeded)) && !isPageLoaded && !isParentHidden) {
-        setPagesLoaded([...pagesLoaded, page]);
-        loadMore(page);
-      }
-    };
-
-    // Initial run
-    handle();
-
     // Add event listener after load
-    (parentElement || window).addEventListener('scroll', handle);
-    (parentElement || window).addEventListener('resize', handle);
+    (parentElement || window).addEventListener('scroll', load);
+    (parentElement || window).addEventListener('resize', load);
+
+    // Check loading beginning from first page as first page is loaded in separate useEffect().
+    load();
 
     // Cleanup
     return () => {
-      (parentElement || window).removeEventListener('scroll', handle);
-      (parentElement || window).removeEventListener('resize', handle);
+      (parentElement || window).removeEventListener('scroll', load);
+      (parentElement || window).removeEventListener('resize', load);
     };
-  }, [
-    page,
-    pagesLoaded,
-    hasMore,
-    disabled
-  ]);
+  });
 
   return (
     <Fragment>
-      {/* dummy inside child for getting parent dom element */}
-      <div ref={dummyContentRef}
+      {/* Wrapper inside child for getting parent dom element */}
+      <div ref={wrapperRef}
            style={{ display: 'none' }}
       />
 
