@@ -19,6 +19,7 @@ npm install --save react-infinite-scroll-loader-y
 
 ```tsx
 <InfiniteScroll dataLength={items.length}
+                batchSize={50}
                 loadMore={page => loadMoreItems(page)}
                 hasMore={hasMoreItems}
 >
