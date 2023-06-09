@@ -4,6 +4,7 @@
 Version 2.0.0 has **breaking changes**.
 - `loadFirstSetOnInit` prop was removed. Look into `manualLoadFirstSet` instead.
 - `startPage` prop was removed. Look into `batchSize` prop instead which is mandatory.
+- `resetDependencies` props must now always be an array.
 
 ___
 
@@ -52,7 +53,7 @@ npm install --save react-infinite-scroll-loader-y
 | manualLoadFirstSet | No | `boolean` | `false` | Will not load first set of items automatically. Will proceed loading items automatically when first batch is loaded. |
 | loader | No | `React.ReactNode` | | Loading component. Can be a simple text, animated icon or more sophisticated React component. |
 | parentRef | No | `RefObject<any>` | | Pass ref of parent HTML element if you want scroll-loading to happen inside that HTML Element. Useful for applying scroll loader for example inside modals and specific DIVs. |
-| resetDependencies | No | `any or Array<any>` | | Dependencies that will trigger reset of everything |
+| resetDependencies | No | `Array<any>` | | Dependencies that will trigger reset of everything |
 | disabled | No | `boolean` | `false` | Disables current component |
 | beforeEachLoad | No | `(reset: fn) => boolean/void` | | Function that runs before each render. If it returns `true` then the next render will not be triggered.
 
